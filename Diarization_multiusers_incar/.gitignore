@@ -1,0 +1,37 @@
+# Model weights and compiled NPU caches. Fetch or build them with ./fetch_models.sh
+# (the small config files the runtime reads stay tracked)
+/models/*
+!/models/config.json
+!/models/static_config.json
+!/models/vocab.txt
+!/models/vai_ep_config.json
+/diarization/models/*
+!/diarization/models/vai_ep_config.json
+!/diarization/models/vai_ep_config_accurate.json
+
+# Python environments and caches
+.venv*/
+__pycache__/
+*.pyc
+*.pyo
+
+# Audio: only the two demo/eval clips are tracked
+*.wav
+*.mp3
+!/ASR_LLM_inference/incar_commands_us_en.wav
+!/audio_files/multi_speaker_us_en.wav
+
+# Logs and run outputs (recreated by the scripts)
+*.log
+*.pid
+/ASR_LLM_inference/asr_llm_results.json
+/ASR_LLM_inference/asr_only_turns.json
+benchmark_results.json
+runs/
+*.segments.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

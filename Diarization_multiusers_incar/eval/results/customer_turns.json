@@ -1,0 +1,18 @@
+[
+ {
+  "speaker": 0,
+  "start": 0.71,
+  "end": 4.21,
+  "overlap": false,
+  "speaker_label": "Speaker 1",
+  "text": "Hey, don't forget that the meeting starts at nine sharp. We really need to be on time."
+ },
+ {
+  "speaker": 1,
+  "start": 6.6,
+  "end": 10.89,
+  "overlap": false,
+  "speaker_label": "Speaker 2",
+  "text": "Oh Moment, der Scheibenw\u00e4scher hat gerade kurz ausgesetzt. Das ist ja echt seltsam."
+ }
+]

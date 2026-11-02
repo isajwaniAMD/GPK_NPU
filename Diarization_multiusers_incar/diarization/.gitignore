@@ -1,0 +1,12 @@
+__pycache__/
+*.log
+env_backup/
+runs/
+segments.json
+*.segments.json
+
+# generated: downloaded weights, exported ONNX, compiled NPU binaries, test audio and references
+audio/*
+models/*
+!models/vai_ep_config.json
+!models/vai_ep_config_accurate.json

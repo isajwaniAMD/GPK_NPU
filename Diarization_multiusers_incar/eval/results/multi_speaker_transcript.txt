@@ -1,0 +1,10 @@
+[00:00-00:03] Speaker 1: Good morning everyone. Let's get started with the project update.
+[00:03-00:08] Speaker 2: And the back-end migration finished last night, and everything looks stable so far.
+[00:08-00:14] Speaker 3: That's great news. Did we see any change in response times after the move?
+[00:14-00:19] Speaker 2: Yes, the average latency dropped from two hundred milliseconds to about one hundred twenty.
+[00:19-00:25] Speaker 4: I can add to that. The error rate is also down and we haven't had a single time out since Tuesday.
+[00:25-00:28] Speaker 1: Excellent. What is still left on the list before the release?
+[00:29-00:34] Speaker 3: We need to finish the documentation and run the final round of user testing.
+[00:35-00:39] Speaker 4: I'll write the documentation this week. Can someone help me with the testing schedule?
+[00:39-00:45] Speaker 3: I can take that. I'll send out an invitation to the testers by tomorrow afternoon.
+[00:46-00:51] Speaker 1: Perfect. Let's meet again on Friday to review where we are. Thanks everybody.

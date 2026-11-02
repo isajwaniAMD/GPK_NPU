@@ -1,0 +1,8 @@
+{
+  "chunk_seconds": 15,
+  "fixed_frames": 1498,
+  "encoded_len": 188,
+  "precision": "fp32",
+  "encoder_model": "encoder-model.fp32.static.npu.onnx",
+  "decoder_model": "decoder_joint-model.fp32.static.onnx"
+}

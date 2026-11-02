@@ -1,0 +1,10 @@
+[   0.0 -    3.5] Speaker 1: Good morning everyone. Let's get started with the project update.
+[   4.0 -    8.5] Speaker 2: Thanks. The backend migration finished last night, and everything looks stable so far.
+[   9.0 -   14.2] Speaker 3: That's great news. Did we see any change in response times after the move?
+[  14.7 -   19.4] Speaker 2: Yes, the average latency dropped from two hundred milliseconds to about one hundred twenty.
+[  19.9 -   25.3] Speaker 4: I can add to that. The error rate is also down, and we haven't had a single timeout since Tuesday.
+[  25.8 -   29.0] Speaker 1: Excellent. What is still left on the list before the release?
+[  29.5 -   34.6] Speaker 3: We need to finish the documentation and run the final round of user testing.
+[  35.1 -   39.4] Speaker 4: I'll write the documentation this week. Can someone help me with the testing schedule?
+[  39.9 -   45.9] Speaker 3: I can take that. I'll send out an invitation to the testers by tomorrow afternoon.
+[  46.4 -   51.2] Speaker 1: Perfect. Let's meet again on Friday to review where we are. Thanks, everybody.

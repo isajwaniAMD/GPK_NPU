@@ -1,0 +1,82 @@
+[
+ {
+  "speaker": 0,
+  "start": 0.0,
+  "end": 3.46,
+  "overlap": false,
+  "speaker_label": "Speaker 1",
+  "text": "Good morning everyone. Let's get started with the project update."
+ },
+ {
+  "speaker": 1,
+  "start": 3.99,
+  "end": 8.47,
+  "overlap": false,
+  "speaker_label": "Speaker 2",
+  "text": "And the back-end migration finished last night, and everything looks stable so far."
+ },
+ {
+  "speaker": 2,
+  "start": 8.96,
+  "end": 14.04,
+  "overlap": false,
+  "speaker_label": "Speaker 3",
+  "text": "That's great news. Did we see any change in response times after the move?"
+ },
+ {
+  "speaker": 1,
+  "start": 14.67,
+  "end": 19.37,
+  "overlap": false,
+  "speaker_label": "Speaker 2",
+  "text": "Yes, the average latency dropped from two hundred milliseconds to about one hundred twenty."
+ },
+ {
+  "speaker": 3,
+  "start": 19.84,
+  "end": 25.12,
+  "overlap": false,
+  "speaker_label": "Speaker 4",
+  "text": "I can add to that. The error rate is also down and we haven't had a single time out since Tuesday."
+ },
+ {
+  "speaker": 0,
+  "start": 25.77,
+  "end": 28.87,
+  "overlap": false,
+  "speaker_label": "Speaker 1",
+  "text": "Excellent. What is still left on the list before the release?"
+ },
+ {
+  "speaker": 2,
+  "start": 29.55,
+  "end": 34.49,
+  "overlap": false,
+  "speaker_label": "Speaker 3",
+  "text": "We need to finish the documentation and run the final round of user testing."
+ },
+ {
+  "speaker": 3,
+  "start": 35.16,
+  "end": 39.31,
+  "overlap": false,
+  "speaker_label": "Speaker 4",
+  "text": "I'll write the documentation this week. Can someone help me with the testing schedule?"
+ },
+ {
+  "speaker": 2,
+  "start": 39.9,
+  "end": 45.72,
+  "overlap": false,
+  "speaker_label": "Speaker 3",
+  "text": "I can take that. I'll send out an invitation to the testers by tomorrow afternoon."
+ },
+ {
+  "speaker": 0,
+  "start": 46.54,
+  "end": 51.09,
+  "overlap": false,
+  "speaker_label": "Speaker 1",
+  "text": "Perfect. Let's meet again on Friday to review where we are. Thanks everybody."
+ }
+]

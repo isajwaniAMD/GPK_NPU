@@ -1,0 +1,122 @@
+[
+ {
+  "speaker": 0,
+  "start": 0.12,
+  "end": 4.79,
+  "overlap": false,
+  "speaker_label": "Speaker 1",
+  "text": "Thank you for calling customer support, my name is Sarah, how can I help you today?"
+ },
+ {
+  "speaker": 1,
+  "start": 5.15,
+  "end": 9.64,
+  "overlap": true,
+  "speaker_label": "Speaker 2",
+  "text": "Hi Sarah. My internet has been dropping out every evening in the past three days."
+ },
+ {
+  "speaker": 2,
+  "start": 7.38,
+  "end": 11.1,
+  "overlap": true,
+  "speaker_label": "Speaker 3",
+  "text": "I'm calling from the same account."
+ },
+ {
+  "speaker": 0,
+  "start": 11.45,
+  "end": 15.02,
+  "overlap": true,
+  "speaker_label": "Speaker 1",
+  "text": "I'm sorry to hear Johnson."
+ },
+ {
+  "speaker": 0,
+  "start": 16.08,
+  "end": 20.04,
+  "overlap": true,
+  "speaker_label": "Speaker 1",
+  "text": "Thank you. I can see several disconnections out of this Monday evening."
+ },
+ {
+  "speaker": 1,
+  "start": 19.73,
+  "end": 22.91,
+  "overlap": true,
+  "speaker_label": "Speaker 2",
+  "text": "Even we already restored our router twice, so that is not the problem."
+ },
+ {
+  "speaker": 3,
+  "start": 23.09,
+  "end": 29.2,
+  "overlap": false,
+  "speaker_label": "Speaker 4",
+  "text": "Hi everyone, this is Mark, the supervisor. Sarah, I'm joining to help with this one."
+ },
+ {
+  "speaker": 0,
+  "start": 28.49,
+  "end": 28.94,
+  "overlap": true,
+  "speaker_label": "Speaker 1",
+  "text": "With this one."
+ },
+ {
+  "speaker": 0,
+  "start": 29.23,
+  "end": 33.02,
+  "overlap": true,
+  "speaker_label": "Speaker 1",
+  "text": "Thanks, Mark."
+ },
+ {
+  "speaker": 1,
+  "start": 31.56,
+  "end": 34.94,
+  "overlap": true,
+  "speaker_label": "Speaker 2",
+  "text": "Tomorrow is fine for me. Anytime works fine."
+ },
+ {
+  "speaker": 2,
+  "start": 33.7,
+  "end": 37.23,
+  "overlap": true,
+  "speaker_label": "Speaker 3",
+  "text": "Can we make it later in the afternoon?"
+ },
+ {
+  "speaker": 3,
+  "start": 37.6,
+  "end": 42.32,
+  "overlap": false,
+  "speaker_label": "Speaker 4",
+  "text": "Let's book between four and six, and I will send a confirmation by email."
+ },
+ {
+  "speaker": 0,
+  "start": 41.79,
+  "end": 46.3,
+  "overlap": true,
+  "speaker_label": "Speaker 1",
+  "text": "I have created the ticket and applied everyone to New York."
+ },
+ {
+  "speaker": 0,
+  "start": 47.73,
+  "end": 50.74,
+  "overlap": false,
+  "speaker_label": "Speaker 1",
+  "text": "You're welcome. Is there anything else I can help you with today?"
+ },
+ {
+  "speaker": 1,
+  "start": 51.07,
+  "end": 53.25,
+  "overlap": false,
+  "speaker_label": "Speaker 2",
+  "text": "No, that's everything. Have a great day."
+ }
+]

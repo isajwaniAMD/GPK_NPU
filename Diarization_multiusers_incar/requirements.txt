@@ -1,0 +1,19 @@
+# Python dependencies (Parakeet ASR engine, demo_gui, ASR_LLM_inference client)
+#
+# IMPORTANT: If using Ryzen AI NPU (--device npu), do NOT install onnxruntime
+# from pip. The ryzen-ai conda environment already includes onnxruntime with
+# VitisAI Execution Provider support. Installing from pip would overwrite it.
+#
+# For CPU-only usage, uncomment the onnxruntime line below:
+# onnxruntime>=1.17.0
+
+numpy>=1.24.0
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+requests>=2.31.0
+
+# Microphone diagnostics (diarization/diag_mic.py)
+sounddevice>=0.4.6
+
+# Speaker diarization (diarization/) needs nothing more at run time. Exporting its model uses a separate
+# environment: see diarization/requirements-export.txt

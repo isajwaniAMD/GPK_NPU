@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Speaker-aware Voice Assistant — Ryzen AI</title>
+<style>
+  :root {
+    --bg: #0f1419; --panel: #171d25; --panel2: #1e2631; --line: #2a3441; --text: #e6edf3; --muted: #8b98a9;
+    --npu: #ed1c24; --igpu: #3fb68b; --cpu: #7d8da1;
+    /* Okabe-Ito: distinguishable for colour-blind viewers */
+    --s0: #56b4e9; --s1: #e69f00; --s2: #009e73; --s3: #cc79a7; --s4: #f0e442; --s5: #d55e00;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 "Segoe UI", system-ui, sans-serif; }
+  header { display: flex; align-items: center; gap: 16px; padding: 14px 24px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  header h1 { font-size: 18px; margin: 0; font-weight: 600; }
+  header .sub { color: var(--muted); font-size: 13px; }
+  .chips { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { padding: 4px 10px; border-radius: 999px; background: var(--panel2); border: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+  .chip b { color: var(--text); font-weight: 600; }
+  .chip.ok::before { content: "● "; color: var(--igpu); }
+  .chip.bad::before { content: "● "; color: var(--npu); }
+  main { display: grid; grid-template-columns: 420px 1fr; gap: 20px; padding: 20px 24px; max-width: 1500px; margin: 0 auto; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin-bottom: 20px; }
+  .card h2 { margin: 0 0 12px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  button#start { width: 100%; padding: 12px; font-size: 16px; font-weight: 600; border: 0; border-radius: 8px; background: var(--npu); color: #fff; cursor: pointer; }
+  button#start:disabled { background: var(--line); color: var(--muted); cursor: default; }
+  audio { width: 100%; margin-top: 12px; height: 36px; }
+  /* pipeline */
+  .pipe { display: flex; align-items: stretch; gap: 6px; }
+  .stage { flex: 1; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 8px; text-align: center; transition: all .2s; }
+  .stage .name { font-size: 12px; font-weight: 600; }
+  .stage .hw { font-size: 11px; margin-top: 2px; font-weight: 700; }
+  .stage .lat { font-size: 12px; color: var(--muted); margin-top: 4px; min-height: 18px; }
+  .stage.npu .hw { color: var(--npu); } .stage.igpu .hw { color: var(--igpu); }
+  .stage.active { border-color: var(--text); background: #263040; box-shadow: 0 0 0 2px rgba(255,255,255,.12); }
+  .arrow { align-self: center; color: var(--muted); }
+  /* compute usage legend */
+  .usage-row { display: grid; grid-template-columns: 64px 1fr 46px; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .usage-row .name { font-size: 13px; font-weight: 700; color: var(--c); }
+  .usage-row .pct { font-size: 15px; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+  .bar { position: relative; height: 22px; background: var(--panel2); border-radius: 6px; overflow: hidden; }
+  .bar .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--c); opacity: .85; transition: width .4s ease; }
+  .bar svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .bar polyline { fill: none; stroke: #fff; stroke-width: 1.5; opacity: .55; vector-effect: non-scaling-stroke; }
+  .usage-note { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.35; }
+  #usage-summary { display: none; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+  #usage-summary h3 { margin: 0 0 8px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--text); font-weight: 700; }
+  .sum-row { display: grid; grid-template-columns: 64px 1fr 1fr; gap: 10px; align-items: baseline; margin-bottom: 6px; }
+  .sum-row .name { font-size: 13px; font-weight: 700; color: var(--c); }
+  .sum-row .avg { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .sum-row .avg small, .sum-row .peak { font-size: 12px; font-weight: 400; color: var(--muted); }
+  .sum-head { display: grid; grid-template-columns: 64px 1fr 1fr; gap: 10px; font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  /* timeline */
+  .timeline { position: relative; }
+  .lane { display: flex; align-items: center; height: 30px; border-bottom: 1px dashed var(--line); position: relative; }
+  .lane .lbl { width: 78px; font-size: 12px; color: var(--muted); flex: none; }
+  .lane .track { position: relative; flex: 1; height: 100%; }
+  .seg { position: absolute; top: 6px; height: 18px; border-radius: 4px; opacity: .95; }
+  .playhead { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; left: 78px; pointer-events: none; }
+  .axis { display: flex; justify-content: space-between; margin-left: 78px; font-size: 11px; color: var(--muted); margin-top: 4px; }
+  /* metrics */
+  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .metric { background: var(--panel2); border-radius: 8px; padding: 10px; }
+  .metric .v { font-size: 22px; font-weight: 600; } .metric .k { font-size: 11px; color: var(--muted); }
+  /* conversation */
+  #feed { display: flex; flex-direction: column; gap: 14px; }
+  .empty { color: var(--muted); text-align: center; padding: 60px 0; }
+  .turn { background: var(--panel); border: 1px solid var(--line); border-left: 5px solid var(--c); border-radius: 12px; padding: 14px 16px; animation: in .3s ease; }
+  @keyframes in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .turn .head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .badge { background: var(--c); color: #0b0f14; font-weight: 700; font-size: 12px; padding: 2px 10px; border-radius: 999px; }
+  .time { color: var(--muted); font-size: 12px; }
+  .asrms { margin-left: auto; font-size: 11px; color: var(--npu); }
+  .heard { font-size: 16px; }
+  .heard.pending, .reply.pending { color: var(--muted); font-style: italic; }
+  .reply { margin-top: 10px; padding: 10px 12px; background: var(--panel2); border-radius: 8px; border-left: 3px solid var(--igpu); }
+  .reply .to { font-size: 11px; color: var(--igpu); font-weight: 700; margin-bottom: 2px; }
+  .reply .meta { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .warn { color: #ffb86b; font-size: 12px; margin-left: 6px; }
+  #err { display: none; background: #4a1d1f; border: 1px solid var(--npu); padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+<header>
+  <div><h1>Speaker-aware Voice Assistant</h1><div class="sub">AMD Strix Halo (Ryzen AI) · NPU speech + iGPU language model, fully on-device</div></div>
+  <div class="chips" id="chips"></div>
+</header>
+<main>
+  <section>
+    <div class="card">
+      <h2>Demo</h2>
+      <button id="start" disabled>Loading…</button>
+      <audio id="audio" src="/audio.wav" controls preload="auto"></audio>
+    </div>
+    <div class="card">
+      <h2>Pipeline</h2>
+      <div class="pipe">
+        <div class="stage npu" id="st-diar"><div class="name">Who spoke</div><div class="hw">NPU</div><div class="lat" id="lat-diar">—</div></div>
+        <div class="arrow">›</div>
+        <div class="stage npu" id="st-asr"><div class="name">Speech → text</div><div class="hw">NPU + CPU</div><div class="lat" id="lat-asr">—</div></div>
+        <div class="arrow">›</div>
+        <div class="stage igpu" id="st-llm"><div class="name">Answer</div><div class="hw">iGPU</div><div class="lat" id="lat-llm">—</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Compute usage</h2>
+      <div class="usage-row" style="--c:var(--npu)"><div class="name">NPU</div><div class="bar"><div class="fill" id="u-npu"></div><svg id="g-npu" viewBox="0 0 60 100" preserveAspectRatio="none"><polyline points=""/></svg></div><div class="pct" id="p-npu">–</div></div>
+      <div class="usage-row" style="--c:var(--igpu)"><div class="name">iGPU</div><div class="bar"><div class="fill" id="u-igpu"></div><svg id="g-igpu" viewBox="0 0 60 100" preserveAspectRatio="none"><polyline points=""/></svg></div><div class="pct" id="p-igpu">–</div></div>
+      <div class="usage-row" style="--c:var(--cpu)"><div class="name">CPU</div><div class="bar"><div class="fill" id="u-cpu"></div><svg id="g-cpu" viewBox="0 0 60 100" preserveAspectRatio="none"><polyline points=""/></svg></div><div class="pct" id="p-cpu">–</div></div>
+      <div class="usage-note">CPU and iGPU: system-wide, from the kernel. NPU: share of time an NPU inference is running (the driver has no utilization counter). Line = last 30 s.</div>
+      <div id="usage-summary">
+        <h3 id="sum-title">Whole run</h3>
+        <div class="sum-head"><span></span><span>average usage</span><span>peak</span></div>
+        <div class="sum-row" style="--c:var(--npu)"><span class="name">NPU</span><span class="avg" id="s-npu"></span><span class="peak" id="k-npu"></span></div>
+        <div class="sum-row" style="--c:var(--igpu)"><span class="name">iGPU</span><span class="avg" id="s-igpu"></span><span class="peak" id="k-igpu"></span></div>
+        <div class="sum-row" style="--c:var(--cpu)"><span class="name">CPU</span><span class="avg" id="s-cpu"></span><span class="peak" id="k-cpu"></span></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Who is speaking</h2>
+      <div class="timeline" id="timeline"></div>
+      <div class="axis"><span>0 s</span><span id="axis-end"></span></div>
+    </div>
+    <div class="card">
+      <h2>Live metrics</h2>
+      <div class="metrics">
+        <div class="metric"><div class="v" id="m-turns">0</div><div class="k">questions answered</div></div>
+        <div class="metric"><div class="v" id="m-asr">—</div><div class="k">avg speech→text (ms)</div></div>
+        <div class="metric"><div class="v" id="m-llm">—</div><div class="k">avg answer time (s)</div></div>
+        <div class="metric"><div class="v" id="m-gpu">—</div><div class="k">iGPU busy peak (%)</div></div>
+      </div>
+    </div>
+  </section>
+  <section>
+    <div id="err"></div>
+    <div id="feed"><div class="empty">Press <b>Start</b> — the assistant listens to the conversation and answers each speaker by name.</div></div>
+  </section>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const color = s => `var(--s${s % 6})`;
+const fmt = t => `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
+const audio = $("audio"), startBtn = $("start");
+let turns = {}, lanes = {}, stats = {asr: [], llm: [], gpu: []}, es = null;
+
+function chips(st) {
+  const llm = st.llm;
+  $("chips").innerHTML =
+    `<span class="chip ${st.models_loaded ? "ok" : "bad"}">NPU models <b>${st.models_loaded ? "ready" : "loading"}</b></span>` +
+    `<span class="chip ${llm ? "ok" : "bad"}">LLM <b>${llm ? llm.model.split("/").pop() + " on " + llm.device_name : "offline"}</b></span>`;
+  startBtn.disabled = !(st.models_loaded && llm) || st.running;
+  startBtn.textContent = !st.models_loaded ? "Loading models…" : !llm ? "LLM server offline" : "▶  Start demo";
+}
+async function poll() { try { chips(await (await fetch("/api/status")).json()); } catch (e) {} }
+setInterval(() => { if (!es) poll(); }, 3000); poll();
+
+// compute usage legend: poll every 0.5 s, keep the last 60 samples (30 s) for the sparklines
+const hist = {npu: [], igpu: [], cpu: []};
+async function pollUsage() {
+  try {
+    const u = await (await fetch("/api/usage")).json();
+    for (const k of ["npu", "igpu", "cpu"]) {
+      const v = u[k];
+      $("p-" + k).textContent = v == null ? "n/a" : Math.round(v) + "%";
+      $("u-" + k).style.width = (v || 0) + "%";
+      const h = hist[k]; h.push(v || 0); if (h.length > 60) h.shift();
+      $("g-" + k).firstElementChild.setAttribute("points", h.map((y, i) => `${60 - h.length + i},${100 - y}`).join(" "));
+    }
+  } catch (e) {}
+}
+setInterval(pollUsage, 500); pollUsage();
+
+function ensureLane(spk, label) {
+  if (lanes[spk]) return lanes[spk];
+  const lane = document.createElement("div"); lane.className = "lane";
+  lane.innerHTML = `<div class="lbl" style="color:${color(spk)}">${label}</div><div class="track"></div>`;
+  $("timeline").appendChild(lane);
+  if (!$("timeline").querySelector(".playhead")) { const p = document.createElement("div"); p.className = "playhead"; $("timeline").appendChild(p); }
+  return lanes[spk] = lane.querySelector(".track");
+}
+function dur() { return audio.duration || 1; }
+function drawSeg(t) {
+  const seg = document.createElement("div"); seg.className = "seg";
+  seg.style.cssText = `left:${t.start / dur() * 100}%;width:${(t.end - t.start) / dur() * 100}%;background:${color(t.spk)}`;
+  ensureLane(t.spk, t.speaker).appendChild(seg);
+}
+audio.addEventListener("loadedmetadata", () => { $("axis-end").textContent = Math.round(dur()) + " s"; });
+audio.addEventListener("timeupdate", () => {
+  const ph = document.querySelector(".playhead"); if (!ph) return;
+  const track = document.querySelector(".track"); if (!track) return;
+  ph.style.left = (track.offsetLeft + audio.currentTime / dur() * track.offsetWidth) + "px";
+});
+
+function active(stage) {
+  ["diar", "asr", "llm"].forEach(s => $("st-" + s).classList.toggle("active", s === stage));
+}
+const avg = a => a.reduce((x, y) => x + y, 0) / a.length;
+function metrics() {
+  $("m-turns").textContent = stats.llm.length;
+  if (stats.asr.length) $("m-asr").textContent = Math.round(avg(stats.asr));
+  if (stats.llm.length) $("m-llm").textContent = avg(stats.llm).toFixed(1);
+  if (stats.gpu.length) $("m-gpu").textContent = Math.max(...stats.gpu);
+}
+
+function onEvent(ev) {
+  if (ev.type === "diarized") {
+    $("lat-diar").textContent = ev.seconds + " s · " + ev.turns + " turns";
+  } else if (ev.type === "turn") {
+    if ($("feed").querySelector(".empty")) $("feed").innerHTML = "";
+    drawSeg(ev); active("asr");
+    const el = document.createElement("div"); el.className = "turn"; el.style.setProperty("--c", color(ev.spk));
+    el.innerHTML = `<div class="head"><span class="badge">${ev.speaker}</span><span class="time">${fmt(ev.start)} – ${fmt(ev.end)}</span>` +
+      (ev.overlap ? `<span class="warn">⚠ overlapping speech</span>` : "") + `<span class="asrms"></span></div>` +
+      `<div class="heard pending">transcribing on the NPU…</div><div class="reply-slot"></div>`;
+    $("feed").prepend(el); turns[ev.id] = el;
+  } else if (ev.type === "transcript") {
+    const el = turns[ev.id]; if (!el) return;
+    const h = el.querySelector(".heard"); h.classList.remove("pending"); h.textContent = "“" + ev.text + "”";
+    el.querySelector(".asrms").textContent = `NPU ${ev.asr_ms} ms`;
+    el.querySelector(".reply-slot").innerHTML = `<div class="reply pending">thinking on the iGPU…</div>`;
+    stats.asr.push(ev.asr_ms); $("lat-asr").textContent = ev.asr_ms + " ms"; active("llm");
+  } else if (ev.type === "reply") {
+    const el = turns[ev.id]; if (!el) return;
+    el.querySelector(".reply-slot").innerHTML = `<div class="reply"><div class="to">ANSWER → ${ev.speaker}</div>${ev.reply.replace(/</g, "&lt;")}` +
+      `<div class="meta">iGPU · ${ev.tokens} tokens · ${ev.llm_s} s · GPU busy ${ev.gpu_busy}% · remembers ${ev.memory} exchange(s) with ${ev.speaker}</div></div>`;
+    stats.llm.push(ev.llm_s); stats.gpu.push(ev.gpu_busy); $("lat-llm").textContent = ev.llm_s + " s"; metrics(); active(null);
+  } else if (ev.type === "done" || ev.type === "error") {
+    if (ev.type === "error") { $("err").style.display = "block"; $("err").textContent = ev.message; }
+    active(null); es && es.close(); es = null; startBtn.disabled = false; startBtn.textContent = "▶  Run again"; poll();
+    if (ev.usage) showSummary(ev.usage, ev.total_s);
+  }
+}
+
+function showSummary(u, total) {
+  $("sum-title").textContent = `Whole run · ${Math.round(total)} s`;
+  for (const k of ["npu", "igpu", "cpu"]) {
+    const d = u[k];
+    $("s-" + k).innerHTML = d ? `${Math.round(d.avg)}%` + (k === "npu" ? ` <small>(busy ${d.busy_s} s)</small>` : "") : "n/a";
+    $("k-" + k).textContent = d ? `peak ${Math.round(d.peak)}%` : "";
+  }
+  $("usage-summary").style.display = "block";
+}
+
+startBtn.onclick = async () => {
+  startBtn.disabled = true; startBtn.textContent = "Running…"; $("usage-summary").style.display = "none";
+  $("feed").innerHTML = ""; $("timeline").innerHTML = ""; $("err").style.display = "none";
+  turns = {}; lanes = {}; stats = {asr: [], llm: [], gpu: []}; metrics();
+  ["diar", "asr", "llm"].forEach(s => $("lat-" + s).textContent = "—");
+  const r = await fetch("/api/start", {method: "POST"});
+  if (!r.ok) { $("err").style.display = "block"; $("err").textContent = "Could not start: " + (await r.text()); poll(); return; }
+  es = new EventSource("/api/events"); es.onmessage = m => onEvent(JSON.parse(m.data));
+  active("diar"); audio.currentTime = 0; audio.play();
+};
+</script>
+</body>
+</html>

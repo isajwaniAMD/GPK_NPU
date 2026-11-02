@@ -1,0 +1,15 @@
+[00:00-00:04] Speaker 1: Thank you for calling customer support, my name is Sarah, how can I help you today?
+[00:05-00:09] Speaker 2 (overlap): Hi Sarah. My internet has been dropping out every evening in the past three days.
+[00:07-00:11] Speaker 3 (overlap): I'm calling from the same account.
+[00:11-00:15] Speaker 1 (overlap): I'm sorry to hear Johnson.
+[00:16-00:20] Speaker 1 (overlap): Thank you. I can see several disconnections out of this Monday evening.
+[00:19-00:22] Speaker 2 (overlap): Even we already restored our router twice, so that is not the problem.
+[00:23-00:29] Speaker 4: Hi everyone, this is Mark, the supervisor. Sarah, I'm joining to help with this one.
+[00:28-00:28] Speaker 1 (overlap): With this one.
+[00:29-00:33] Speaker 1 (overlap): Thanks, Mark.
+[00:31-00:34] Speaker 2 (overlap): Tomorrow is fine for me. Anytime works fine.
+[00:33-00:37] Speaker 3 (overlap): Can we make it later in the afternoon?
+[00:37-00:42] Speaker 4: Let's book between four and six, and I will send a confirmation by email.
+[00:41-00:46] Speaker 1 (overlap): I have created the ticket and applied everyone to New York.
+[00:47-00:50] Speaker 1: You're welcome. Is there anything else I can help you with today?
+[00:51-00:53] Speaker 2: No, that's everything. Have a great day.

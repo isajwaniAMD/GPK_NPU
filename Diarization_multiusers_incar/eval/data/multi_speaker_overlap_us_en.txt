@@ -1,0 +1,18 @@
+[   0.0 -    4.9] Speaker 1: Thank you for calling customer support, my name is Sarah. How can I help you today?
+[   5.2 -    9.6] Speaker 2: Hi Sarah, my internet has been dropping out every evening for the past three days.
+[   7.4 -   11.2] Speaker 4: Yes, and it happens to me too, I'm calling from the same account.
+[  11.4 -   15.1] Speaker 1: I'm sorry to hear that. Let me pull up the account and check the line.
+[  12.1 -   15.8] Speaker 2: It's under Johnson, the account number ends in four seven two nine.
+[  16.1 -   20.2] Speaker 1: Thank you. I can see several disconnections in the logs since Monday evening.
+[  18.4 -   22.4] Speaker 4: That's exactly what I told him, it always drops around eight o'clock.
+[  19.8 -   22.9] Speaker 2: And we already restarted the router twice, so that is not the problem.
+[  23.1 -   29.3] Speaker 3: Hi everyone, this is Mark, the supervisor. Sarah, I'm joining to help with this one.
+[  28.5 -   33.1] Speaker 1: Great, thanks Mark. I think we should schedule a technician visit for tomorrow.
+[  31.6 -   34.9] Speaker 2: Tomorrow is fine for me, any time after noon works.
+[  33.7 -   37.3] Speaker 4: I can't be home before five, can we make it later in the afternoon?
+[  37.6 -   42.4] Speaker 3: Let's book between four and six, and I will send a confirmation by email.
+[  41.8 -   46.4] Speaker 1: Perfect, I have created the ticket and applied a credit to your account for the outage.
+[  44.5 -   46.2] Speaker 2: Thank you both, that is really helpful.
+[  44.8 -   47.5] Speaker 4: Thanks, we appreciate the quick response.
+[  47.7 -   50.9] Speaker 1: You're welcome. Is there anything else I can help you with today?
+[  51.1 -   53.2] Speaker 2: No, that's everything, have a great day.

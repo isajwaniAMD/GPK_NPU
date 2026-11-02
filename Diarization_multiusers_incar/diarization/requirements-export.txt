@@ -1,0 +1,23 @@
+# Nemotron 3 Diarization - export environment (export_onnx.py, reference_*.py, diag_bf16.py, diag_emul.py,
+# make_test_audio.py)
+#
+# Install into a separate environment, NOT into the ryzen-ai conda environment: it needs the Transformers
+# development build and a newer torch/numpy, and plain onnxruntime would replace onnxruntime-vitisai.
+#
+#   conda create -y -n nemo-diar-export python=3.12
+#   conda activate nemo-diar-export
+#   python -m pip install -r requirements-export.txt
+#
+# Versions are the ones tested (torch 2.14 CPU, Transformers 5.18.0.dev0).
+
+torch>=2.14
+# Nemotron3Diarization is only in the Transformers development build (5.18.0.dev0)
+transformers @ https://github.com/huggingface/transformers/archive/refs/heads/main.zip
+onnx>=1.23
+onnxruntime>=1.30
+onnxscript>=0.7.2
+soundfile>=0.14
+librosa>=1.0
+huggingface_hub>=1.33
+safetensors>=0.8
+numpy>=2.5
