@@ -15,7 +15,9 @@ import json
 import sys
 import threading
 import time
+import wave
 from pathlib import Path
+from typing import Optional
 
 import requests
 import uvicorn
@@ -32,6 +34,55 @@ import diarize_transcribe as dt  # noqa: E402
 app = FastAPI(title="Speaker-aware voice assistant demo")
 CFG = {"audio": ROOT / "ASR_LLM_inference" / "incar_commands_us_en.wav", "llm_url": "http://127.0.0.1:8008",
        "history": 6, "max_new_tokens": 120, "pad": 0.05, "merge_gap": 0.6, "min_turn": 0.4}
+
+# Clips offered in the page's dropdown: every 16 kHz mono 16-bit WAV of at most MAX_CLIP_S seconds in these folders
+# (anything else, e.g. the 48 kHz stereo background-music file, is skipped automatically).
+CLIP_DIRS = [ROOT / "ASR_LLM_inference", ROOT / "audio_files", ROOT / "diarization" / "audio"]
+MAX_CLIP_S = 300
+CLIP_INFO = {  # friendly label and a one-line description for the known clips; unknown files are listed by file name
+    "incar_commands_us_en": ("In-car questions, clean", "4 speakers, one at a time. The baseline demo."),
+    "incar_overlap_us_en": ("In-car questions, talking over each other",
+                            "Speakers interrupt each other. Overlapped turns are flagged, but the voices are not separated."),
+    "incar_overlap_music_us_en": ("In-car, talking over each other + background music",
+                                  "Overlapping speakers with very quiet background music fading in first."),
+    "multi_speaker_us_en": ("Team meeting, clean", "4 speakers in a project-update meeting, one at a time."),
+    "customer_data_backgroundNoise": ("Customer data: German / English / Spanish with rain and street noise",
+                                      "Real in-car recordings, mixed languages, background noise. About 3 minutes, so the run takes about 3 minutes."),
+    "diarization_example": ("Real recording (not synthetic)",
+                            "A real conversation from the Hugging Face diarization test set; longer, so the run takes about 100 s."),
+}
+
+
+def list_clips():
+    """{clip id: {"id", "label", "note", "seconds", "path"}}; the id is the path relative to the repo root."""
+    paths = [p for d in CLIP_DIRS for p in sorted(d.glob("*.wav"))]
+    if CFG["audio"] not in paths:
+        paths.append(CFG["audio"])  # the clip given on the command line is always offered
+    clips = {}
+    for p in paths:
+        try:
+            with wave.open(str(p)) as w:
+                ok = (w.getframerate(), w.getnchannels(), w.getsampwidth()) == (dt.SAMPLE_RATE, 1, 2)
+                seconds = w.getnframes() / w.getframerate()
+        except (wave.Error, OSError):
+            continue
+        if not ok or (seconds > MAX_CLIP_S and p != CFG["audio"]):
+            continue
+        label, note = CLIP_INFO.get(p.stem, (p.stem.replace("_", " "), ""))
+        cid = str(p.relative_to(ROOT)) if p.is_relative_to(ROOT) else str(p)
+        clips[cid] = {"id": cid, "label": label, "note": note, "seconds": round(seconds, 1), "path": p}
+    return clips
+
+
+def resolve_clip(clip):
+    """Path of the chosen clip (the default clip when none is given); only clips from list_clips() are allowed."""
+    if not clip:
+        return CFG["audio"]
+    found = list_clips().get(clip)
+    if found is None:
+        raise HTTPException(404, f"unknown clip: {clip}")
+    return found["path"]
+
 
 MODELS = {}                      # diarizer, transcriber, dz (loaded once)
 RUN = {"events": [], "running": False, "id": 0, "samples": []}   # samples: (cpu, npu, igpu) per usage sample during a run
@@ -123,11 +174,11 @@ def load_models():
     MODELS["load_s"] = round(time.perf_counter() - t, 1)
 
 
-def run_pipeline(run_id):
+def run_pipeline(run_id, audio_path):
     try:
         dz, diarizer, transcriber = MODELS["dz"], MODELS["diarizer"], MODELS["transcriber"]
         t0 = time.monotonic()  # the browser starts playback on click, so the playback clock starts now
-        audio, sr = dz.load_audio(str(CFG["audio"])), dt.SAMPLE_RATE
+        audio, sr = dz.load_audio(str(audio_path)), dt.SAMPLE_RATE
         t = time.perf_counter()
         probs, mask, _ = diarizer.diarize(audio)
         turns = dt.mark_overlaps(dt.build_turns(dz.extract_segments(probs, mask), CFG["merge_gap"], CFG["min_turn"]))
@@ -168,8 +219,14 @@ def index():
 
 
 @app.get("/audio.wav")
-def audio():
-    return FileResponse(CFG["audio"], media_type="audio/wav")
+def audio(clip: Optional[str] = None):
+    return FileResponse(resolve_clip(clip), media_type="audio/wav")
+
+
+@app.get("/api/clips")
+def clips():
+    default = next((c["id"] for c in list_clips().values() if c["path"] == CFG["audio"]), None)
+    return {"default": default, "clips": [{k: v for k, v in c.items() if k != "path"} for c in list_clips().values()]}
 
 
 @app.get("/api/status")
@@ -188,13 +245,14 @@ def usage():
 
 
 @app.post("/api/start")
-def start():
+def start(clip: Optional[str] = None):
+    path = resolve_clip(clip)
     with COND:
         if RUN["running"]:
             raise HTTPException(409, "a run is already in progress")
         RUN.update(running=True, events=[], samples=[], id=RUN["id"] + 1)
         run_id = RUN["id"]
-    threading.Thread(target=run_pipeline, args=(run_id,), daemon=True).start()
+    threading.Thread(target=run_pipeline, args=(run_id, path), daemon=True).start()
     return {"run": run_id}
 
 

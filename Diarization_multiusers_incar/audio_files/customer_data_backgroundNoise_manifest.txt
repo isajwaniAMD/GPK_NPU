@@ -1,0 +1,9 @@
+Clips of amd_audio_streams.zip in the order they appear in customer_data_backgroundNoise.wav.
+One clip per distinct line: the other takes and overlapping segments repeat the same sentences and were left out
+(02, 11, 05 = German driver / English passenger in rain; 08, 07 = English driver / Spanish passenger on the street).
+Loudness evened out, 0.4 s gaps.
+[   0.0 -   10.6] 02_Segment_1_of_mixed-de-driver-en-passenger_rain_10_dB
+[  11.0 -   22.0] 11_Segment_3_of_mixed-de-driver-en-passenger.fresh_rain_10_dB
+[  22.4 -   34.3] 05_Segment_4_of_mixed-de-driver-en-passenger_rain_10_dB
+[  34.7 -   45.0] 08_Segment_2_of_mixed-en-driver-es-passenger_street_9_dB
+[  45.4 -   53.0] 07_Segment_5_of_mixed-en-driver-es-passenger.fresh_street_9_dB

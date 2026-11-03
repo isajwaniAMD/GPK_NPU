@@ -1,0 +1,10 @@
+[   0.0 -    3.5] Speaker 1: Hey car, what is the quickest route to the nearest charging station?
+[   2.3 -    4.9] Speaker 2: Can you also tell me how much battery range we have left?
+[   5.5 -    9.9] Speaker 3: Please turn the temperature in the back seat down a little, it is too warm.
+[   7.9 -   11.3] Speaker 4: What is the capital of Australia? We are arguing about it.
+[  10.3 -   13.3] Speaker 1: Remind me to buy groceries when we get home this evening.
+[  14.0 -   17.8] Speaker 2: Explain in one sentence why electric cars have regenerative braking.
+[  16.3 -   19.8] Speaker 3: Can you suggest a relaxing playlist for a long drive?
+[  17.3 -   20.5] Speaker 4: How long does it usually take to fully charge a car like this?
+[  21.1 -   25.2] Speaker 1: Thanks. And what is the speed limit on a typical highway in California?
+[  23.9 -   26.4] Speaker 2: Tell me a short joke to keep the kids entertained.

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Speaker-aware Voice Assistant — Ryzen AI</title>
+<title>Speaker-aware voice assistant on AMD Ryzen AI (Strix Halo Platform)</title>
 <style>
   :root {
     --bg: #0f1419; --panel: #171d25; --panel2: #1e2631; --line: #2a3441; --text: #e6edf3; --muted: #8b98a9;
@@ -16,17 +16,16 @@
   header { display: flex; align-items: center; gap: 16px; padding: 14px 24px; border-bottom: 1px solid var(--line); background: var(--panel); }
   header h1 { font-size: 18px; margin: 0; font-weight: 600; }
   header .sub { color: var(--muted); font-size: 13px; }
-  .chips { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
-  .chip { padding: 4px 10px; border-radius: 999px; background: var(--panel2); border: 1px solid var(--line); font-size: 12px; color: var(--muted); }
-  .chip b { color: var(--text); font-weight: 600; }
-  .chip.ok::before { content: "● "; color: var(--igpu); }
-  .chip.bad::before { content: "● "; color: var(--npu); }
   main { display: grid; grid-template-columns: 420px 1fr; gap: 20px; padding: 20px 24px; max-width: 1500px; margin: 0 auto; }
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin-bottom: 20px; }
   .card h2 { margin: 0 0 12px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
   button#start { width: 100%; padding: 12px; font-size: 16px; font-weight: 600; border: 0; border-radius: 8px; background: var(--npu); color: #fff; cursor: pointer; }
   button#start:disabled { background: var(--line); color: var(--muted); cursor: default; }
   audio { width: 100%; margin-top: 12px; height: 36px; }
+  .clip-label { display: block; font-size: 12px; color: var(--muted); margin: 0 0 6px; }
+  #clip { width: 100%; padding: 9px 10px; font-size: 14px; color: var(--text); background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; margin-bottom: 4px; }
+  #clip:disabled { opacity: .6; }
+  #clip-note { min-height: 30px; margin-bottom: 10px; }
   /* pipeline */
   .pipe { display: flex; align-items: stretch; gap: 6px; }
   .stage { flex: 1; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 8px; text-align: center; transition: all .2s; }
@@ -76,6 +75,8 @@
   .heard { font-size: 16px; }
   .heard.pending, .reply.pending { color: var(--muted); font-style: italic; }
   .reply { margin-top: 10px; padding: 10px 12px; background: var(--panel2); border-radius: 8px; border-left: 3px solid var(--igpu); }
+  .reply.skipped { border-left-color: #ffb86b; color: var(--muted); }
+  .reply.skipped .to { color: #ffb86b; }
   .reply .to { font-size: 11px; color: var(--igpu); font-weight: 700; margin-bottom: 2px; }
   .reply .meta { font-size: 11px; color: var(--muted); margin-top: 4px; }
   .warn { color: #ffb86b; font-size: 12px; margin-left: 6px; }
@@ -84,13 +85,15 @@
 </head>
 <body>
 <header>
-  <div><h1>Speaker-aware Voice Assistant</h1><div class="sub">AMD Strix Halo (Ryzen AI) · NPU speech + iGPU language model, fully on-device</div></div>
-  <div class="chips" id="chips"></div>
+  <div><h1>Speaker-aware voice assistant on AMD Ryzen AI (Strix Halo Platform)</h1><div class="sub">NPU speech + iGPU language model, fully on-device</div></div>
 </header>
 <main>
   <section>
     <div class="card">
       <h2>Demo</h2>
+      <label class="clip-label" for="clip">Audio clip</label>
+      <select id="clip"></select>
+      <div class="usage-note" id="clip-note"></div>
       <button id="start" disabled>Loading…</button>
       <audio id="audio" src="/audio.wav" controls preload="auto"></audio>
     </div>
@@ -145,15 +148,12 @@ const fmt = t => `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(Math.f
 const audio = $("audio"), startBtn = $("start");
 let turns = {}, lanes = {}, stats = {asr: [], llm: [], gpu: []}, es = null;
 
-function chips(st) {
+function applyStatus(st) {   // enable the Start button only when the NPU models are loaded and the LLM server answers
   const llm = st.llm;
-  $("chips").innerHTML =
-    `<span class="chip ${st.models_loaded ? "ok" : "bad"}">NPU models <b>${st.models_loaded ? "ready" : "loading"}</b></span>` +
-    `<span class="chip ${llm ? "ok" : "bad"}">LLM <b>${llm ? llm.model.split("/").pop() + " on " + llm.device_name : "offline"}</b></span>`;
   startBtn.disabled = !(st.models_loaded && llm) || st.running;
   startBtn.textContent = !st.models_loaded ? "Loading models…" : !llm ? "LLM server offline" : "▶  Start demo";
 }
-async function poll() { try { chips(await (await fetch("/api/status")).json()); } catch (e) {} }
+async function poll() { try { applyStatus(await (await fetch("/api/status")).json()); } catch (e) {} }
 setInterval(() => { if (!es) poll(); }, 3000); poll();
 
 // compute usage legend: poll every 0.5 s, keep the last 60 samples (30 s) for the sparklines
@@ -217,10 +217,17 @@ function onEvent(ev) {
     $("feed").prepend(el); turns[ev.id] = el;
   } else if (ev.type === "transcript") {
     const el = turns[ev.id]; if (!el) return;
-    const h = el.querySelector(".heard"); h.classList.remove("pending"); h.textContent = "“" + ev.text + "”";
+    const h = el.querySelector(".heard");
     el.querySelector(".asrms").textContent = `NPU ${ev.asr_ms} ms`;
+    stats.asr.push(ev.asr_ms); $("lat-asr").textContent = ev.asr_ms + " ms";
+    if (!ev.text) {  // nothing usable was recognised (typically two voices speaking at the same time): no LLM call follows
+      h.classList.add("pending"); h.textContent = "Couldn't make out this turn: the voices overlap.";
+      el.querySelector(".reply-slot").innerHTML = `<div class="reply skipped"><div class="to">NO ANSWER</div>Overlapping voices can't be separated yet, so there is nothing to answer.</div>`;
+      active(null); return;
+    }
+    h.classList.remove("pending"); h.textContent = "“" + ev.text + "”";
     el.querySelector(".reply-slot").innerHTML = `<div class="reply pending">thinking on the iGPU…</div>`;
-    stats.asr.push(ev.asr_ms); $("lat-asr").textContent = ev.asr_ms + " ms"; active("llm");
+    active("llm");
   } else if (ev.type === "reply") {
     const el = turns[ev.id]; if (!el) return;
     el.querySelector(".reply-slot").innerHTML = `<div class="reply"><div class="to">ANSWER → ${ev.speaker}</div>${ev.reply.replace(/</g, "&lt;")}` +
@@ -229,6 +236,7 @@ function onEvent(ev) {
   } else if (ev.type === "done" || ev.type === "error") {
     if (ev.type === "error") { $("err").style.display = "block"; $("err").textContent = ev.message; }
     active(null); es && es.close(); es = null; startBtn.disabled = false; startBtn.textContent = "▶  Run again"; poll();
+    clipSel.disabled = false;
     if (ev.usage) showSummary(ev.usage, ev.total_s);
   }
 }
@@ -243,13 +251,39 @@ function showSummary(u, total) {
   $("usage-summary").style.display = "block";
 }
 
-startBtn.onclick = async () => {
-  startBtn.disabled = true; startBtn.textContent = "Running…"; $("usage-summary").style.display = "none";
-  $("feed").innerHTML = ""; $("timeline").innerHTML = ""; $("err").style.display = "none";
+// clip picker: lists the usable clips from the server and loads the chosen one into the player
+const clipSel = $("clip"), clipById = {};
+const EMPTY_FEED = $("feed").innerHTML;
+function resetScreen() {
+  $("usage-summary").style.display = "none"; $("timeline").innerHTML = ""; $("err").style.display = "none";
   turns = {}; lanes = {}; stats = {asr: [], llm: [], gpu: []}; metrics();
-  ["diar", "asr", "llm"].forEach(s => $("lat-" + s).textContent = "—");
-  const r = await fetch("/api/start", {method: "POST"});
-  if (!r.ok) { $("err").style.display = "block"; $("err").textContent = "Could not start: " + (await r.text()); poll(); return; }
+  ["diar", "asr", "llm"].forEach(s => $("lat-" + s).textContent = "—"); active(null);
+}
+function showClip() {
+  const c = clipById[clipSel.value]; if (!c) return;
+  $("clip-note").textContent = `${c.seconds} s` + (c.note ? " · " + c.note : "");
+  audio.pause(); audio.src = "/audio.wav?clip=" + encodeURIComponent(c.id);
+}
+async function loadClips() {
+  try {
+    const d = await (await fetch("/api/clips")).json();
+    clipSel.innerHTML = "";
+    for (const c of d.clips) {
+      clipById[c.id] = c;
+      const o = document.createElement("option"); o.value = c.id; o.textContent = `${c.label} (${Math.round(c.seconds)} s)`; clipSel.appendChild(o);
+    }
+    if (d.default) clipSel.value = d.default;
+    showClip();
+  } catch (e) { $("clip-note").textContent = "could not load the clip list"; }
+}
+clipSel.onchange = () => { showClip(); resetScreen(); $("feed").innerHTML = EMPTY_FEED; startBtn.textContent = "▶  Start demo"; };
+loadClips();
+
+startBtn.onclick = async () => {
+  startBtn.disabled = true; clipSel.disabled = true; startBtn.textContent = "Running…";
+  $("feed").innerHTML = ""; resetScreen();
+  const r = await fetch("/api/start?clip=" + encodeURIComponent(clipSel.value), {method: "POST"});
+  if (!r.ok) { $("err").style.display = "block"; $("err").textContent = "Could not start: " + (await r.text()); clipSel.disabled = false; poll(); return; }
   es = new EventSource("/api/events"); es.onmessage = m => onEvent(JSON.parse(m.data));
   active("diar"); audio.currentTime = 0; audio.play();
 };

@@ -16,6 +16,7 @@ PyTorch venv (`.venv-igpu`), so their native libraries never mix.
 |---|---|
 | `make_incar_wav.py` | Makes the test clip (4 US English voices, 10 questions to the car assistant, no noise, no overlap) + ground truth `incar_commands_us_en.txt` |
 | `incar_commands_us_en.wav` / `.txt` | The clip (42.2 s, 16 kHz mono) and its ground truth |
+| `make_incar_overlap_wav.py` | Same 4 voices and questions, but speakers talk over each other (6 of 10 lines start over the previous one, 1 brief 3-way moment). Writes `../audio_files/incar_overlap_us_en.wav` + truth `../eval/data/incar_overlap_us_en.txt` (true start/end per line). `--music FILE` mixes in a very quiet background track (fades in over 3 s, 4 s alone, then under the talk at -22 dB, fades out); see the docstring for options |
 | `llm_server.py`, `start_llm_server.sh` | LLM on the iGPU through PyTorch; refuses to start on the CPU |
 | `asr_llm_pipeline.py`, `run_pipeline.sh` | NPU ASR per speaker turn, then the LLM, per-speaker memory; writes `asr_llm_results.json` and `asr_llm_run.log` |
 | `check_igpu.py` | Confirms PyTorch runs on the Radeon 8060S (gfx1151) |

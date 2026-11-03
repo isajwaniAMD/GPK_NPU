@@ -15,11 +15,12 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Audio: only the two demo/eval clips are tracked
+# Audio: only the demo/eval clips are tracked
 *.wav
 *.mp3
 !/ASR_LLM_inference/incar_commands_us_en.wav
 !/audio_files/multi_speaker_us_en.wav
+!/audio_files/incar_overlap_us_en.wav
 
 # Logs and run outputs (recreated by the scripts)
 *.log

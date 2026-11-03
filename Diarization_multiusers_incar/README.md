@@ -39,7 +39,7 @@ diarize_transcribe.py        diarize + transcribe a WAV into labelled turns (als
 ASR_LLM_inference/           the assistant pipeline: asr_llm_pipeline.py + llm_server.py, the 4-speaker test clip (see its README)
 demo_gui/                    browser demo (FastAPI + one HTML page), see demo_gui/README.md
 eval/                        diarization/WER evaluation scripts, ground truth (data/) and saved results (results/)
-audio_files/                 multi_speaker_us_en.wav, the clip the eval scripts use
+audio_files/                 multi_speaker_us_en.wav (eval clip), incar_overlap_us_en.wav (the in-car questions with speakers talking over each other), incar_overlap_music_us_en.wav (same, with quiet background music; not tracked in git, see .gitignore)
 models/                      model weights (not in git); small config files are tracked
 fetch_models.sh              downloads / builds every model
 requirements.txt             Python packages for the Ryzen AI side
@@ -88,6 +88,10 @@ demo_gui/run_demo.sh            # then open http://127.0.0.1:8080 and press Star
 ```bash
 ASR_LLM_inference/start_llm_server.sh      # terminal 1: LLM on the iGPU (port 8008)
 ASR_LLM_inference/run_pipeline.sh          # terminal 2: diarize + transcribe on the NPU, answers from the LLM
+```
+**Overlapping speech** (speakers talk over each other; overlapped turns are flagged but not separated, so expect weaker transcripts):
+```bash
+demo_gui/run_demo.sh audio_files/incar_overlap_us_en.wav
 ```
 **Diarize + transcribe only (no LLM):**
 ```bash

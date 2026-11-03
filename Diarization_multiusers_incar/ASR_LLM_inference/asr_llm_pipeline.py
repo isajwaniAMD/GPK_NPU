@@ -21,10 +21,22 @@ ROOT = HERE.parent                      # the parakeetnpu repo root
 sys.path.insert(0, str(ROOT))
 import diarize_transcribe as dt         # build_turns, mark_overlaps, to_wav_bytes, fmt_time (also sets up the diarization path)
 
+# SIMULATED car state for the demo (made up; there is no real vehicle or map connection). The assistant may quote these values.
+VEHICLE = [
+    ("Battery", "62 %, about 185 miles of range"),
+    ("Nearest charger", "Electrify America, 4.2 miles away, about 9 minutes, 4 of 8 stalls free, up to 350 kW"),
+    ("Charging time", "about 40 minutes from 10 to 80 % at a fast charger, about 9 hours from empty on a home charger"),
+    ("Cabin temperature", "front 72 F, rear 76 F (rear zone is adjustable)"),
+    ("Music", "playlists available: Relaxing Drive, Road Trip Classics, Acoustic Chill"),
+    ("Reminders", "available; a reminder can be set for when the car reaches home"),
+]
 SYSTEM = ("You are the voice assistant of a car, talking with several occupants. Each message starts with the speaker's label "
           "(Speaker 1, Speaker 2, ...); answer that speaker directly. Reply in one or two short spoken sentences, plain text, "
-          "no lists, no markdown. You have no live vehicle or map data in this demo: answer general questions directly, and for "
-          "vehicle actions (navigation, climate, reminders, music) confirm briefly what you would do without inventing numbers.")
+          "no lists, no markdown. This is a demo with SIMULATED vehicle data; use these values when they are relevant:\n"
+          + "\n".join(f"- {k}: {v}" for k, v in VEHICLE) + "\n"
+          "For navigation to the nearest charger, use the charger above. For climate, music and reminders, confirm the action as "
+          "done and state the new setting. Answer general-knowledge questions directly. Never invent any other vehicle or map "
+          "numbers beyond those listed.")
 
 
 def ask_llm(url, messages, max_new_tokens):
